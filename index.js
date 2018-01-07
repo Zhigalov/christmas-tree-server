@@ -1,8 +1,11 @@
 const app = require('express')();
 const port = 3333;
 const { MongoClient } = require('mongodb');
+const uri = process.env.MONGO_URI;
 
-MongoClient.connect(process.env.MONGO_URI, (err, client) => {
+console.log(uri);
+
+MongoClient.connect(uri, (err, client) => {
   if (err) {
     console.error(err);
     return;
@@ -17,18 +20,24 @@ MongoClient.connect(process.env.MONGO_URI, (err, client) => {
       temp: parseFloat(temp),
       hum: parseFloat(hum),
       ts: new Date()
-    }, () => res.status(204).end());
+    }, err => {
+      if (err) {
+        console.error(err);
+      } else {
+        res.status(204).end();
+      }
+    });
   });
 
   app.get('/', (req, res) => {
-    measures.findOne(
-      {},
-      { sort: { ts: -1 } },
-      (err, lastMeasure) => res.json(lastMeasure));
+    measures.findOne({}, { sort: { ts: -1 } }, (err, lastMeasure) => {
+      if (err) {
+        console.error(err);
+      } else {
+        res.json(lastMeasure);
+      }
+    });
   });
 
-  app.listen(port, () => console.log(`Server started on http://localhost:${port}`));
+  app.listen(port, console.log);
 });
-
-
-'mongodb://temperature-server:cs7gtjpm@ds247327.mlab.com:47327'
