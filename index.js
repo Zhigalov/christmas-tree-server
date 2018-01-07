@@ -1,11 +1,8 @@
 const app = require('express')();
-const port = 3333;
+const port = process.env.PORT || 3333;
 const { MongoClient } = require('mongodb');
-const uri = process.env.MONGO_URI;
 
-console.log(uri);
-
-MongoClient.connect(uri, (err, client) => {
+MongoClient.connect(process.env.MONGO_URI, (err, client) => {
   if (err) {
     console.error(err);
     return;
