@@ -20,6 +20,13 @@ MongoClient.connect(process.env.MONGO_URI, (err, client) => {
     }, () => res.status(204).end());
   });
 
+  app.get('/', (req, res) => {
+    measures.findOne(
+      {},
+      { sort: { ts: -1 } },
+      (err, lastMeasure) => res.json(lastMeasure));
+  });
+
   app.listen(port, () => console.log(`Server started on http://localhost:${port}`));
 });
 
