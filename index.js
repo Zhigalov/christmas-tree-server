@@ -2,6 +2,10 @@ const app = require('express')();
 const port = process.env.PORT || 3333;
 const { MongoClient } = require('mongodb');
 
+app.engine('handlebars', require('express-handlebars')());
+app.set('view engine', 'handlebars');
+app.set('views', './views');
+
 MongoClient.connect(process.env.MONGO_URI, (err, client) => {
   if (err) {
     console.error(err);
@@ -31,7 +35,7 @@ MongoClient.connect(process.env.MONGO_URI, (err, client) => {
       if (err) {
         console.error(err);
       } else {
-        res.json(lastMeasure);
+        res.render('main', { lastMeasure });
       }
     });
   });
