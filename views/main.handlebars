@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Christmas Tree</title>
+</head>
+<body>
+    Hello World! {{ lastMeasure.temp }} {{ lastMeasure.hum }} {{ lastMeasure.ts }}
+    <div class="container">
+        <div id="temp-graph"></div>
+        <div id="hum-graph"></div>
+    </div>
+
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script>
+        google.charts.load('current', {'packages':['corechart']});
+        google.charts.setOnLoadCallback(drawBasic);
+
+        function drawBasic() {
+
+            const data = new google.visualization.DataTable();
+            data.addColumn('number', 'X');
+            data.addColumn('number', 'Temperature');
+
+            fetch('/load?from=2018-01-07T00%3A00%3A00.000Z&to=2018-01-08T07%3A00%3A00.000Z&type=temp')
+                .then(response => response.json())
+                .then(measures => {
+                    console.log(measures);
+                    data.addRows(measures);
+
+                    const options = {
+                        hAxis: { title: 'Time' },
+                        vAxis: { title: 'Temperature' },
+                        curveType: 'function'
+                    };
+
+                    const chart = new google.visualization.LineChart(document.getElementById('temp-graph'));
+
+                    chart.draw(data, options);
+                })
+                .catch(console.error);
+        }
+    </script>
+</body>
+</html>

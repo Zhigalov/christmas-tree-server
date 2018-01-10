@@ -2,6 +2,10 @@ const app = require('express')();
 const port = process.env.PORT || 3333;
 const { MongoClient } = require('mongodb');
 
+app.engine('handlebars', require('express-handlebars')());
+app.set('view engine', 'handlebars');
+app.set('views', './views');
+
 MongoClient.connect(process.env.MONGO_URI, (err, client) => {
   if (err) {
     console.error(err);
@@ -26,12 +30,36 @@ MongoClient.connect(process.env.MONGO_URI, (err, client) => {
     });
   });
 
+  app.get('/load', (req, res) => {
+    const { from, to, type } = req.query;
+
+    measures
+      .find({
+          $and: [
+            { ts: { $gt: new Date(from) } },
+            { ts: { $lt: new Date(to) } }
+          ]
+      })
+      .project({
+        [type]: 1,
+        _id: 0,
+        ts: 1
+      })
+      .toArray((err, measures) => {
+        if (err) {
+          console.error(err);
+        } else {
+          res.json(measures.map(item => [item.ts.getTime(), item[type]]));
+        }
+      });
+  });
+
   app.get('/', (req, res) => {
     measures.findOne({}, { sort: { ts: -1 } }, (err, lastMeasure) => {
       if (err) {
         console.error(err);
       } else {
-        res.json(lastMeasure);
+        res.render('main', { lastMeasure });
       }
     });
   });
