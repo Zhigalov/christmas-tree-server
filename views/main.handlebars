@@ -5,41 +5,83 @@
     <title>Christmas Tree</title>
 </head>
 <body>
-    Hello World! {{ lastMeasure.temp }} {{ lastMeasure.hum }} {{ lastMeasure.ts }}
-    <div class="container">
-        <div id="temp-graph"></div>
-        <div id="hum-graph"></div>
-    </div>
+  <table>
+    <tr>
+      <td>Temperature</td>
+      <td>{{ lastMeasure.temp }}</td>
+    </tr>
+    <tr>
+      <td>Humidity</td>
+      <td>{{ lastMeasure.hum }}</td>
+    </tr>
+    <tr>
+      <td>Last update</td>
+      <td>{{ lastMeasure.ts }}</td>
+    </tr>
+  </table>
 
-    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-    <script>
-        google.charts.load('current', {'packages':['corechart']});
-        google.charts.setOnLoadCallback(drawBasic);
+  <div class="from">
+    <label for="from">From date</label>
+    <input id="from" type="datetime-local" onchange="drawBasic()">
+  </div>
+  <div class="to">
+    <label for="to">To date</label>
+    <input id="to" type="datetime-local" onchange="drawBasic()">
+  </div>
+  <div class="measure">
+    <label for="temp">Temperature</label>
+    <input type="radio" name="type" value="temp" id="temp" checked onchange="drawBasic()">
 
-        function drawBasic() {
+    <label for="hum">Humidity</label>
+    <input type="radio" name="type" value="hum" id="hum" onchange="drawBasic()">
+  </div>
 
-            const data = new google.visualization.DataTable();
-            data.addColumn('number', 'X');
-            data.addColumn('number', 'Temperature');
+  <div id="graph"></div>
 
-            fetch('/load?from=2018-01-07T00%3A00%3A00.000Z&to=2018-01-08T07%3A00%3A00.000Z&type=temp')
-                .then(response => response.json())
-                .then(measures => {
-                    console.log(measures);
-                    data.addRows(measures);
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+  <script>
+    const fromInput = document.getElementById('from');
+    const toInput = document.getElementById('to');
 
-                    const options = {
-                        hAxis: { title: 'Time' },
-                        vAxis: { title: 'Temperature' },
-                        curveType: 'function'
-                    };
+    initDate();
 
-                    const chart = new google.visualization.LineChart(document.getElementById('temp-graph'));
+    google.charts.load('current', {'packages':['corechart']});
+    google.charts.setOnLoadCallback(drawBasic);
 
-                    chart.draw(data, options);
-                })
-                .catch(console.error);
-        }
-    </script>
+    function initDate() {
+      const now = Date.now();
+
+      fromInput.valueAsNumber = now - 6 * 60* 60 * 1000;
+      toInput.valueAsNumber = now;
+    }
+
+    function drawBasic() {
+      const data = new google.visualization.DataTable();
+
+      data.addColumn('number', 'Time');
+      data.addColumn('number', 'Measure');
+
+      const from = fromInput.value;
+      const to = toInput.value;
+      const type = document.querySelector('input[name="type"]:checked').value;
+
+      fetch(`/load?from=${from}&to=${to}&type=${type}`)
+        .then(response => response.json())
+        .then(measures => {
+          data.addRows(measures);
+
+          const options = {
+              hAxis: { title: 'Time' },
+              vAxis: { title: 'Temperature' },
+              curveType: 'function'
+          };
+
+          const chart = new google.visualization.LineChart(document.getElementById('graph'));
+
+          chart.draw(data, options);
+        })
+        .catch(console.error);
+      }
+  </script>
 </body>
 </html>

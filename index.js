@@ -4,7 +4,6 @@ const { MongoClient } = require('mongodb');
 
 app.engine('handlebars', require('express-handlebars')());
 app.set('view engine', 'handlebars');
-app.set('views', './views');
 
 MongoClient.connect(process.env.MONGO_URI, (err, client) => {
   if (err) {
