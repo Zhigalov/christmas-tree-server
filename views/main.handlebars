@@ -51,28 +51,39 @@
     function initDate() {
       const now = Date.now();
 
-      fromInput.valueAsNumber = now - 6 * 60* 60 * 1000;
-      toInput.valueAsNumber = now;
+      fromInput.value = formatDate(now - 24 * 60* 60 * 1000);
+      toInput.value = formatDate(now);
+    }
+
+    function formatDate(ts) {
+      const date = new Date(ts);
+      const localDate = date.getTime() - date.getTimezoneOffset() * 60 * 1000;
+
+      return new Date(localDate)
+        .toISOString()
+        .split(':')
+        .slice(0, 2)
+        .join(':');
     }
 
     function drawBasic() {
       const data = new google.visualization.DataTable();
-
-      data.addColumn('number', 'Time');
-      data.addColumn('number', 'Measure');
-
       const from = fromInput.value;
       const to = toInput.value;
       const type = document.querySelector('input[name="type"]:checked').value;
+      const measureName = document.querySelector(`label[for="${type}"]`).textContent;
+
+      data.addColumn('datetime', 'Time');
+      data.addColumn('number', measureName);
 
       fetch(`/load?from=${from}&to=${to}&type=${type}`)
         .then(response => response.json())
         .then(measures => {
-          data.addRows(measures);
+          data.addRows(measures.map(([date, value]) => [new Date(date), value]));
 
           const options = {
               hAxis: { title: 'Time' },
-              vAxis: { title: 'Temperature' },
+              vAxis: { title: measureName },
               curveType: 'function'
           };
 

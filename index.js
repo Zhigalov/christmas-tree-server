@@ -48,7 +48,7 @@ MongoClient.connect(process.env.MONGO_URI, (err, client) => {
         if (err) {
           console.error(err);
         } else {
-          res.json(measures.map(item => [item.ts.getTime(), item[type]]));
+          res.json(measures.map(item => [item.ts, item[type]]));
         }
       });
   });
